@@ -82,6 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                             $comments = $mysqli -> query("SELECT * FROM taskcomment WHERE taskID = $taskID");
                             $obj = $taskDetails -> fetch_object();
                             echo "<h1 class=\"task-name\">$obj->name</h1>";
+                            
                             echo "<h2 class=\"task-description\">$obj->description</h2>";
                             while ($obj2 = $comments -> fetch_object()) {
                                 echo "<div class='comment-box'>";

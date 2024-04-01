@@ -6,6 +6,16 @@ $userID = 0;
 
 if ($_SERVER['REQUEST_METHOD'] == "POST") {
 
+    $query = $mysqli->prepare("INSERT INTO tasks (name, description, status) VALUES (?, ?, 'open')");
+    $query->bind_param("ss", $_POST['taskName'], $_POST['taskDescription']);
+    $query->execute();
+
+    $taskID = mysqli_insert_id($mysqli);
+
+    $query = $mysqli->prepare("INSERT INTO tasklisttasks (taskListID, taskID) VALUES (?, ?)");
+    $query->bind_param("ss", $_GET['tasklist_id'], $taskID);
+    $query->execute();
+
     header("Location: index.php?task_id=$taskID");
 }
 ?>
