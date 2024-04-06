@@ -61,9 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                     }
                     else {
                         while ($obj = $resultTaskLists -> fetch_object()) {
-                            if ($obj->owner == 1) {
-                                echo "<a href='edit-tasklist.php?tasklistID=$obj->taskListID' class='edit-tasklist'>Edit</a>";
-                            }
+                            echo "<a href='edit-tasklist.php?tasklistID=$obj->taskListID' class='edit-tasklist'>Edit</a>";
                             echo "<p class='task-list-title' style='border-color: $obj->colour'>{$obj->name}</p>";
                             echo "<div class='task-list-tasks' style='border-color: $obj->colour'>";
                             $queryTasks = "SELECT tasks.name, tasks.taskID FROM tasks, taskListtasks WHERE tasklisttasks.taskListID = $obj->taskListID AND tasks.taskID = tasklisttasks.taskID";
@@ -84,6 +82,11 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                             $taskDetails = $mysqli -> query("SELECT * FROM tasks WHERE taskID = $taskID");
                             $comments = $mysqli -> query("SELECT * FROM taskcomment WHERE taskID = $taskID");
                             $obj = $taskDetails -> fetch_object();
+                            $checkOwner = $mysqli -> query("SELECT tasklistaccess.owner FROM tasklisttasks, tasklistaccess WHERE $obj->taskID = tasklisttasks.taskID AND tasklisttasks.tasklistID = tasklistaccess.tasklistID");
+                            $access = $checkOwner -> fetch_object();
+                            if ($access->owner == 1) {
+                                echo "<a href='edit-task.php?taskID=$obj->taskID' class='edit-task'>Edit</a>";
+                            }
                             echo "<h1 class=\"task-name\">$obj->name</h1>";
                             
                             echo "<h2 class=\"task-description\">$obj->description</h2>";
