@@ -5,19 +5,26 @@ session_start();
 $userID = 0;
 
 if ($_SERVER['REQUEST_METHOD'] == "POST") {
+    if (isset($_POST['create'])) {
+        $query = $mysqli->prepare("INSERT INTO tasklists (name) VALUES (?);");
+        $query->bind_param('s', $_POST['taskListName']);
+        $query->execute();
+    
+        $colour = $_POST['option'];
+        $userID = $_SESSION["user_id"];
+        $taskListID = mysqli_insert_id($mysqli);
+    
+        $query = $mysqli->prepare("INSERT INTO tasklistaccess (userID, taskListID, colour, owner) VALUES (?, ?, ?, 1);");
+        $query->bind_param('sss', $userID, $taskListID, $colour);
+        $query->execute();
+    } else {
+        $query = $mysqli->prepare("UPDATE tasklists SET  name = ? WHERE tasklistID = ?");
+        $query->bind_param('ss', $_POST['taskListName'], $_GET['tasklistID']);
+        $query->execute();
 
-    $query = $mysqli->prepare("INSERT INTO tasklists (name) VALUES (?);");
-    $query->bind_param('s', $_POST['taskListName']);
-    $query->execute();
-
-    $colour = $_POST['option'];
-    $userID = $_SESSION["user_id"];
-    $taskListID = mysqli_insert_id($mysqli);
-
-    $query = $mysqli->prepare("INSERT INTO tasklistaccess (userID, taskListID, colour, owner) VALUES (?, ?, ?, 1);");
-    $query->bind_param('sss', $userID, $taskListID, $colour);
-    $query->execute();
-
+        $query = $mysqli->prepare("UPDATE tasklistaccess SET colour = ? WHERE tasklistID = ?");
+        $query->bind_param('ss', $_POST['colour'], $_GET['tasklistID']);
+    }
     header("Location: index.php?task_id=$taskID");
 }
 ?>
@@ -43,7 +50,13 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                     <label for="red">Red</label><input type="radio" name="option" id="red" value="red" onclick="document.getElementById('colour').innerHTML = 'Red'">
                     <label for="green">Green</label><input type="radio" name="option" id="green" value="green" onclick="document.getElementById('colour').innerHTML = 'Green'">
                 </div>
-                <button type="sumbit" class="create-new-tasklist-button">Create Task List</button>
+                <?php
+                if (!isset($_GET['tasklistID'])) {
+                    echo "<button type='sumbit' class='create-new-tasklist-button' name='create'>Create Task List</button>";
+                } else {
+                    echo "<button type='sumbit' class='update-new-tasklist-button' name='update'>Update Task List</button>";
+                }
+                ?>
             </form>
         </div>
     </div>

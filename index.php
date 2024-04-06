@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                     }
                     else {
                         while ($obj = $resultTaskLists -> fetch_object()) {
-                            echo "<a href='edit-tasklist.php?tasklistID=$obj->taskListID' class='edit-tasklist'>Edit</a>";
+                            echo "<a href='new-tasklist.php?tasklistID=$obj->taskListID' class='edit-tasklist'>Edit</a>";
                             echo "<p class='task-list-title' style='border-color: $obj->colour'>{$obj->name}</p>";
                             echo "<div class='task-list-tasks' style='border-color: $obj->colour'>";
                             $queryTasks = "SELECT tasks.name, tasks.taskID FROM tasks, taskListtasks WHERE tasklisttasks.taskListID = $obj->taskListID AND tasks.taskID = tasklisttasks.taskID";
