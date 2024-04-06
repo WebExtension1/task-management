@@ -205,3 +205,18 @@ input {
 .create-new-tasklist-button {
     margin: 100px 105px 0px 105px;
 }
+.edit-tasklist {
+    position: absolute;
+    padding: 8px 0px 0px 250px;
+}
+a {
+    color: white;
+    transition: 0.5s;
+}
+a:hover {
+    color: rgb(58, 58, 58);
+    transition: 0.5s;
+}
+button:hover {
+    color: rgb(58, 58, 58);
+}
