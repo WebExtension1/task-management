@@ -64,30 +64,3 @@ CREATE TABLE `tasklisttasks` (
     FOREIGN KEY (taskListID) REFERENCES taskLists (taskListID),
     FOREIGN KEY (taskID) REFERENCES tasks (taskID)
 );
-
-INSERT INTO `taskcomment` (`commentID`, `text`, `timestamp`, `taskID`, `userID`) VALUES
-(1, 'First comment', '2024-02-27 22:01:14', 1, 1),
-(2, 'Second comment', '2024-02-27 22:02:32', 1, 1);
-
-INSERT INTO `tasklistaccess` (`userID`, `taskListID`, `colour`, `owner`) VALUES
-(1, 1, 'Blue', 1),
-(1, 2, 'Red', 1);
-
-INSERT INTO `tasklists` (`taskListID`, `name`) VALUES
-(1, 'Main'),
-(2, 'Work');
-
-INSERT INTO `tasklisttasks` (`taskListID`, `taskID`) VALUES
-(1, 1),
-(1, 2),
-(2, 3),
-(2, 4);
-
-INSERT INTO `tasks` (`taskID`, `name`, `description`, `status`) VALUES
-(1, 'First Task', 'First task description', 'open'),
-(2, 'Second Task', 'Second task description', 'open'),
-(3, 'Third Task', 'Third task description', 'open'),
-(4, 'Fourth Task', 'Fourth task description', 'open');
-
-INSERT INTO `users` (`userID`, `firstname`, `surname`, `email`, `psword`) VALUES
-(1, 'Robert', 'Jenner', 'robertjenner5@me.com', '12345');

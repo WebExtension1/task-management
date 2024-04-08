@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                     }
                     else {
                         while ($obj = $resultTaskLists -> fetch_object()) {
-                            echo "<a href='new-tasklist.php?tasklistID=$obj->taskListID' class='edit-tasklist'>Edit</a>";
+                            echo "<a href='tasklist-details.php?tasklistID=$obj->taskListID' class='edit-tasklist'>Edit</a>";
                             echo "<p class='task-list-title' style='border-color: $obj->colour'>{$obj->name}</p>";
                             echo "<div class='task-list-tasks' style='border-color: $obj->colour'>";
                             $queryTasks = "SELECT tasks.name, tasks.taskID FROM tasks, taskListtasks WHERE tasklisttasks.taskListID = $obj->taskListID AND tasks.taskID = tasklisttasks.taskID";
@@ -70,9 +70,9 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                                 echo "<p class='task-title'> <a href=\"index.php?task_id={$obj2->taskID}\">{$obj2->name}</a></p>";
                             }
                             echo "</div>";
-                            echo "<p class='add-new-task'><a href='new-task.php?tasklist_id=$obj->taskListID'>+ Add New</a></p>";
+                            echo "<p class='add-new-task'><a href='task-details.php?tasklist_id=$obj->taskListID'>+ Add New</a></p>";
                         }
-                        echo "<p class='add-new-tasklist'><a href='new-tasklist.php'>+ Add New</a></p>";
+                        echo "<p class='add-new-tasklist'><a href='tasklist-details.php'>+ Add New</a></p>";
                     }
                 ?>
                 </div>
@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                             $checkOwner = $mysqli -> query("SELECT tasklistaccess.owner FROM tasklisttasks, tasklistaccess WHERE $obj->taskID = tasklisttasks.taskID AND tasklisttasks.tasklistID = tasklistaccess.tasklistID");
                             $access = $checkOwner -> fetch_object();
                             if ($access->owner == 1) {
-                                echo "<a href='edit-task.php?taskID=$obj->taskID' class='edit-task'>Edit</a>";
+                                echo "<a href='task-details.php?taskID=$obj->taskID' class='edit-task'>Edit</a>";
                             }
                             echo "<h1 class=\"task-name\">$obj->name</h1>";
                             

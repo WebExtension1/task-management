@@ -186,7 +186,7 @@ input {
     margin: 0px;
     font-size: 15px;
 }
-.new-tasklist-name-box {
+.new-tasklist-name-box, .new-task-name-box, .new-task-description-box {
     margin-top: 70px;
     align-self: center;
 }
