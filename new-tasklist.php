@@ -2,7 +2,13 @@
 require_once("includes/config.php");
 session_start();
 
-$userID = 0;
+$userID = $_SESSION['user_id'];
+
+if (isset($_GET['tasklistID'])) {
+    $taskListID = $_GET['tasklistID'];
+    $query = $mysqli->query("SELECT * FROM tasklistaccess WHERE taskListID = $taskListID AND userID = $userID");
+    $result = $query->fetch_object();
+}
 
 if ($_SERVER['REQUEST_METHOD'] == "POST") {
     if (isset($_POST['create'])) {
@@ -18,12 +24,13 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         $query->bind_param('sss', $userID, $taskListID, $colour);
         $query->execute();
     } else {
-        $query = $mysqli->prepare("UPDATE tasklists SET  name = ? WHERE tasklistID = ?");
+        $query = $mysqli->prepare("UPDATE tasklists SET name = ? WHERE tasklistID = ?");
         $query->bind_param('ss', $_POST['taskListName'], $_GET['tasklistID']);
         $query->execute();
 
         $query = $mysqli->prepare("UPDATE tasklistaccess SET colour = ? WHERE tasklistID = ?");
-        $query->bind_param('ss', $_POST['colour'], $_GET['tasklistID']);
+        $query->bind_param('ss', $_POST['option'], $_GET['tasklistID']);
+        $query->execute();
     }
     header("Location: index.php?task_id=$taskID");
 }
@@ -45,10 +52,10 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             <form method="post" class="new-tasklist-form">
                 <input class="new-tasklist-name-box" type="text" placeholder="Task List Name" name="taskListName" required>
                 <div class="colour-checkboxes">
-                    <label for="white">White</label><input type="radio" name="option" id="white" value="white" onclick="document.getElementById('colour').innerHTML = 'White'" checked>
-                    <label for="blue">Blue</label><input type="radio" name="option" id="blue" value="blue" onclick="document.getElementById('colour').innerHTML = 'Blue'">
-                    <label for="red">Red</label><input type="radio" name="option" id="red" value="red" onclick="document.getElementById('colour').innerHTML = 'Red'">
-                    <label for="green">Green</label><input type="radio" name="option" id="green" value="green" onclick="document.getElementById('colour').innerHTML = 'Green'">
+                    <label for="white">White</label><input type="radio" name="option" id="white" value="White" onclick="document.getElementById('colour').innerHTML = 'White'" <?php if (isset($result)) { if ($result->colour == "white") { echo "checked"; } } ?>>
+                    <label for="blue">Blue</label><input type="radio" name="option" id="blue" value="Blue" onclick="document.getElementById('colour').innerHTML = 'Blue'" <?php if (isset($result)) { if ($result->colour == "blue") { echo "checked"; } } ?>>
+                    <label for="red">Red</label><input type="radio" name="option" id="red" value="Red" onclick="document.getElementById('colour').innerHTML = 'Red'" <?php if (isset($result)) { if ($result->colour == "red") { echo "checked"; } } ?>>
+                    <label for="green">Green</label><input type="radio" name="option" id="green" value="Green" onclick="document.getElementById('colour').innerHTML = 'Green'" <?php if (isset($result)) { if ($result->colour == "green") { echo "checked"; } } ?>>
                 </div>
                 <?php
                 if (!isset($_GET['tasklistID'])) {
