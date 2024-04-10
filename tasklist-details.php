@@ -23,6 +23,17 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         $query = $mysqli->prepare("INSERT INTO tasklistaccess (userID, taskListID, colour, owner) VALUES (?, ?, ?, 1);");
         $query->bind_param('sss', $userID, $taskListID, $colour);
         $query->execute();
+    } else if (isset($_POST['delete'])) {
+        $mysqli->query("DELETE FROM tasklistaccess WHERE taskListID = $taskListID");
+        $linkedTasks = $mysqli->query("SELECT tasks.taskID FROM tasklisttasks, tasks WHERE tasklisttasks.taskListID = $taskListID AND tasks.taskID = tasklisttasks.taskID");
+        while ($taskToRemove = $linkedTasks->fetch_object()) {
+            $mysqli->query("DELETE FROM tasklisttasks WHERE taskID = $taskToRemove->taskID");
+            $mysqli->query("DELETE FROM notification WHERE associatedTask = $taskToRemove->taskID");
+            $mysqli->query("DELETE FROM taskcomment WHERE taskID = $taskToRemove->taskID");
+            $mysqli->query("DELETE FROM tasks WHERE tasks.taskID = $taskToRemove->taskID");
+        }
+        
+        $mysqli->query("DELETE FROM tasklists WHERE taskListID = $taskListID");
     } else {
         $query = $mysqli->prepare("UPDATE tasklists SET name = ? WHERE tasklistID = ?");
         $query->bind_param('ss', $_POST['taskListName'], $_GET['tasklistID']);
@@ -61,9 +72,12 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                 if (!isset($_GET['tasklistID'])) {
                     echo "<button type='sumbit' class='create-new-tasklist-button' name='create'>Create Task List</button>";
                 } else {
-                    echo "<button type='sumbit' class='update-new-tasklist-button' name='update'>Update Task List</button>";
+                    echo "<button type='sumbit' class='update-tasklist-button' name='update'>Update Task List</button>";
                 }
                 ?>
+            </form>
+            <form method="post" class="delete-tasklist">
+            <?php echo "<button type='sumbit' class='delete-tasklist-button' name='delete'>Delete Task List</button>"; ?>
             </form>
         </div>
     </div>

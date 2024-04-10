@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         $query->bind_param('sss', $_POST['comment-text'], $taskID, $userID);
         $query->execute();
     
-        header("Location: index.php?task_id=$userID");
+        header("Location: index.php?task_id=$taskID");
     }
     else if (isset($_POST['logout'])) {
         $_SESSION['user_id'] = 0;

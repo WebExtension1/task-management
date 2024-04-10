@@ -5,18 +5,21 @@ session_start();
 $userID = 0;
 
 if ($_SERVER['REQUEST_METHOD'] == "POST") {
+    if (isset($_POST['create'])) {
+        $query = $mysqli->prepare("INSERT INTO tasks (name, description, status) VALUES (?, ?, 'open')");
+        $query->bind_param("ss", $_POST['taskName'], $_POST['taskDescription']);
+        $query->execute();
+    
+        $taskID = mysqli_insert_id($mysqli);
+    
+        $query = $mysqli->prepare("INSERT INTO tasklisttasks (taskListID, taskID) VALUES (?, ?)");
+        $query->bind_param("ss", $_GET['tasklist_id'], $taskID);
+        $query->execute();
+    
+        header("Location: index.php?task_id=$taskID");
+    } else {
 
-    $query = $mysqli->prepare("INSERT INTO tasks (name, description, status) VALUES (?, ?, 'open')");
-    $query->bind_param("ss", $_POST['taskName'], $_POST['taskDescription']);
-    $query->execute();
-
-    $taskID = mysqli_insert_id($mysqli);
-
-    $query = $mysqli->prepare("INSERT INTO tasklisttasks (taskListID, taskID) VALUES (?, ?)");
-    $query->bind_param("ss", $_GET['tasklist_id'], $taskID);
-    $query->execute();
-
-    header("Location: index.php?task_id=$taskID");
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -40,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                 if (!isset($_GET['taskID'])) {
                     echo "<button type='sumbit' class='create-new-task-button' name='create'>Create Task</button>";
                 } else {
-                    echo "<button type='sumbit' class='update-new-tasklist-button' name='update'>Update Task</button>";
+                    echo "<button type='sumbit' class='update-task-button' name='update'>Update Task</button>";
                 }
                 ?>
             </form>
