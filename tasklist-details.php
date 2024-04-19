@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         }
         
         $mysqli->query("DELETE FROM tasklists WHERE taskListID = $taskListID");
-    } else {
+    } else if (isset($_POST['update'])){
         $query = $mysqli->prepare("UPDATE tasklists SET name = ? WHERE tasklistID = ?");
         $query->bind_param('ss', $_POST['taskListName'], $_GET['tasklistID']);
         $query->execute();

@@ -4,6 +4,10 @@
             <a href="index.php">Home</a>
         </nav>
         <?php
+            if (isset($_POST['logout'])) {
+                $_SESSION['user_id'] = 0;
+                header("Location: index.php");
+            }
             if ($userID == 0){
                 echo "<button class='login'>Login</button>";
             } else {

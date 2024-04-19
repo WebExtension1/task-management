@@ -17,8 +17,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         $query->execute();
     
         header("Location: index.php?task_id=$taskID");
-    } else {
-
     }
 }
 ?>

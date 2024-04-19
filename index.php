@@ -34,10 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
     
         header("Location: index.php?task_id=$taskID");
     }
-    else if (isset($_POST['logout'])) {
-        $_SESSION['user_id'] = 0;
-        header("Location: index.php");
-    }
 }
 ?>
 <!DOCTYPE html>
