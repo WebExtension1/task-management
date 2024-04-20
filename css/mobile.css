@@ -148,7 +148,6 @@ input {
 .task-name {
     margin: 10px 50px;
     text-align: center;
-    border-bottom: 3px solid #fff;
 }
 .task-description {
     margin: 20px 0px 25px 60px;
@@ -223,4 +222,14 @@ a:hover {
 }
 button:hover {
     color: rgb(58, 58, 58);
+}
+.complete {
+    width: 150px;
+    width: 10%;
+    text-align: start;
+    padding: 5px;
+    margin: 15px 15px 0px calc(100% - 150px);
+}
+.notifications {
+    padding-left: 50px;
 }

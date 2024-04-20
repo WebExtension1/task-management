@@ -13,8 +13,6 @@ try {
 catch (Exception $loginException) {
     echo '<script>console.log("User not signed in.");</script>';
 }
-?>
-<?php
 $taskException = "continue";
 try {
     $taskID = $_GET["task_id"];
@@ -24,16 +22,26 @@ catch (Exception $taskException) {
 }
 ob_clean();
 
+$userQuery = $mysqli->query("SELECT * FROM users WHERE userID = $userID");
+$user = $userQuery->fetch_object();
+
 if ($_SERVER['REQUEST_METHOD'] == "POST") {
-    
-    if (isset($_POST['new_comment'])){
+    if (isset($_POST['new-comment'])){
         $commentText = $_POST['comment-text'];
         $query = $mysqli->prepare("INSERT INTO taskcomment (text, taskID, userID) VALUES (?, ?, ?);");
         $query->bind_param('sss', $_POST['comment-text'], $taskID, $userID);
         $query->execute();
-    
-        header("Location: index.php?task_id=$taskID");
+    } else if (isset($_POST['complete'])) {
+        $query = $mysqli->prepare("UPDATE tasks SET status = 'closed' WHERE taskID = ?");
+        $query->bind_param('i', $taskID);
+        $query->execute();
+
+        $notificationMessage = "$user->firstname $user->surname marked the task as complete";
+        $query = $mysqli->prepare("INSERT INTO notification (associatedTask, description) VALUES (?, ?)");
+        $query->bind_param('is', $taskID , $notificationMessage);
+        $query->execute();
     }
+    header("Location: index.php?task_id=$taskID");
 }
 ?>
 <!DOCTYPE html>
@@ -60,13 +68,15 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                             echo "<a href='tasklist-details.php?tasklistID=$obj->taskListID' class='edit-tasklist'>Edit</a>";
                             echo "<p class='task-list-title' style='border-color: $obj->colour'>{$obj->name}</p>";
                             echo "<div class='task-list-tasks' style='border-color: $obj->colour'>";
-                            $queryTasks = "SELECT tasks.name, tasks.taskID FROM tasks, taskListtasks WHERE tasklisttasks.taskListID = $obj->taskListID AND tasks.taskID = tasklisttasks.taskID";
+                            $queryTasks = "SELECT * FROM tasks, taskListtasks WHERE tasklisttasks.taskListID = $obj->taskListID AND tasks.taskID = tasklisttasks.taskID";
                             $resultTasks = $mysqli->query( $queryTasks );
                             while ($obj2 = $resultTasks -> fetch_object()) {
-                                echo "<p class='task-title'> <a href=\"index.php?task_id={$obj2->taskID}\">{$obj2->name}</a></p>";
+                                echo "<p class='task-title'><a href=\"index.php?task_id={$obj2->taskID}\"" . ($obj2->status == "closed" ? "style='color: greenyellow;'" : "") . ">{$obj2->name}</a></p>";
                             }
                             echo "</div>";
-                            echo "<p class='add-new-task'><a href='task-details.php?tasklist_id=$obj->taskListID'>+ Add New</a></p>";
+                            if ($obj->owner == 1){
+                                echo "<p class='add-new-task'><a href='task-details.php?tasklist_id=$obj->taskListID'>+ Add New</a></p>";
+                            }
                         }
                         echo "<p class='add-new-tasklist'><a href='tasklist-details.php'>+ Add New</a></p>";
                     }
@@ -78,13 +88,16 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                             $taskDetails = $mysqli -> query("SELECT * FROM tasks WHERE taskID = $taskID");
                             $comments = $mysqli -> query("SELECT * FROM taskcomment WHERE taskID = $taskID");
                             $obj = $taskDetails -> fetch_object();
-                            $checkOwner = $mysqli -> query("SELECT tasklistaccess.owner FROM tasklisttasks, tasklistaccess WHERE $obj->taskID = tasklisttasks.taskID AND tasklisttasks.tasklistID = tasklistaccess.tasklistID");
-                            $access = $checkOwner -> fetch_object();
-                            if ($access->owner == 1) {
+                            $checkOwner = $mysqli -> query("SELECT * FROM tasklisttasks, tasklistaccess WHERE tasklisttasks.taskID = $obj->taskID AND tasklisttasks.tasklistID = tasklistaccess.tasklistID AND owner = 1 AND userID = $userID");
+                            if (mysqli_num_rows($checkOwner) > 0) {
                                 echo "<a href='task-details.php?taskID=$obj->taskID' class='edit-task'>Edit</a>";
                             }
-                            echo "<h1 class=\"task-name\">$obj->name</h1>";
-                            
+
+                            if ($obj->status == "open") {
+                                echo "<form method='post'><button name='complete' class='complete'>Mark as complete</button></form>";
+                            }                           
+
+                            echo "<h1 class=\"task-name\" style=' " . ($obj->status == "closed" ? "color:greenyellow; border-bottom: 3px solid greenyellow;" : "border-bottom: 3px solid #fff;") . "'>$obj->name</h1>";
                             echo "<h2 class=\"task-description\">$obj->description</h2>";
                             while ($obj2 = $comments -> fetch_object()) {
                                 echo "<div class='comment-box'>";
@@ -99,9 +112,22 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                             echo "<form class='comment-form' method='post'>";
                             echo "<p class='poster'>Commenting As $userDetails->firstname $userDetails->surname</p>";
                             echo "<input name='comment-text' class='new-comment' required>";
-                            echo "<button type='add-comment' class='add-comment' name='new_comment'>Post Comment</button>";
+                            echo "<button type='add-comment' class='add-comment' name='new-comment'>Post Comment</button>";
                             echo "</form>";
                             echo "</div>";
+                            $query = $mysqli->query("SELECT * FROM notification WHERE associatedTask = $taskID");
+                            if (mysqli_num_rows($query) > 0) {
+                                echo "
+                                <div class='notifications'>
+                                <h1>Notifications</h1>
+                                ";
+                                while ($notification = $query->fetch_object()) {
+                                    echo "<p>$notification->timestamp: $notification->description</p>";
+                                }
+                                echo "
+                                </div>
+                                ";
+                            }
                         }
                         catch (Exception $e) {
                             echo "<h1>Please select a task</h1>";

@@ -4,10 +4,14 @@ session_start();
 
 $userID = $_SESSION['user_id'];
 
+$access = true;
 if (isset($_GET['tasklistID'])) {
     $taskListID = $_GET['tasklistID'];
-    $query = $mysqli->query("SELECT * FROM tasklistaccess, tasklists WHERE tasklistaccess.taskListID = tasklists.taskListID AND tasklistaccess.taskListID = $taskListID AND userID = $userID");
+    $query = $mysqli->query("SELECT * FROM tasklistaccess, tasklists WHERE tasklistaccess.taskListID = tasklists.taskListID AND tasklistaccess.taskListID = $taskListID AND userID = $userID AND owner = 1");
     $result = $query->fetch_object();
+    if (mysqli_num_rows($query) == 0) {
+        $access = false;
+    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] == "POST") {
@@ -35,13 +39,29 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         
         $mysqli->query("DELETE FROM tasklists WHERE taskListID = $taskListID");
     } else if (isset($_POST['update'])){
-        $query = $mysqli->prepare("UPDATE tasklists SET name = ? WHERE tasklistID = ?");
-        $query->bind_param('ss', $_POST['taskListName'], $_GET['tasklistID']);
-        $query->execute();
-
-        $query = $mysqli->prepare("UPDATE tasklistaccess SET colour = ? WHERE tasklistID = ?");
+        $query = $mysqli->prepare("UPDATE tasklistaccess SET colour = ? WHERE tasklistID = ? AND userID = $userID");
         $query->bind_param('ss', $_POST['option'], $_GET['tasklistID']);
         $query->execute();
+
+        if ($result->owner == 1) {
+            $query = $mysqli->prepare("UPDATE tasklists SET name = ? WHERE tasklistID = ?");
+            $query->bind_param('ss', $_POST['taskListName'], $_GET['tasklistID']);
+            $query->execute();
+
+            $query = $mysqli->query("DELETE FROM tasklistaccess WHERE tasklistID = $taskListID AND owner != 1");
+        }
+    }
+    if (isset($_POST['update']) || isset($_POST['create'])) {
+        if (isset($_POST['contributors'])) {
+            $closeStatementCheck = 1;
+            $queryText = "INSERT INTO tasklistaccess (userID, taskListID, colour, owner) VALUES ";
+            foreach ($_POST['contributors'] as $contributor) {
+                $queryText .= "($contributor, $taskListID, 'white', 0)";
+                $queryText .= ($closeStatementCheck == count($_POST['contributors']) ? ";" : ",");
+                $closeStatementCheck++;
+            }
+            $query = $mysqli->query($queryText);
+        }
     }
     header("Location: index.php?task_id=$taskID");
 }
@@ -61,24 +81,66 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
     <div class="info-container">
         <div class="info-box">
             <form method="post" class="new-tasklist-form">
-                <input class="new-tasklist-name-box" type="text" placeholder="Task List Name" name="taskListName" <?php if (isset($result)) { echo "value='$result->name'"; } ?> required>
+                <?php
+                if ($access == true) {
+                    echo "<input class='new-tasklist-name-box' type='text' placeholder='Task List Name' name='taskListName'" . (isset($result) ? "value='$result->name'" : "") . " required>";
+                }
+                ?>
+                
                 <div class="colour-checkboxes">
                     <label for="white">White</label><input type="radio" name="option" id="white" value="white" onclick="document.getElementById('colour').innerHTML = 'White'" <?php if (isset($result)) { if ($result->colour == "white") { echo "checked"; } } else if (!isset($_GET['tasklistID'])) { echo "checked"; } ?>>
                     <label for="blue">Blue</label><input type="radio" name="option" id="blue" value="blue" onclick="document.getElementById('colour').innerHTML = 'Blue'" <?php if (isset($result)) { if ($result->colour == "blue") { echo "checked"; } } ?>>
                     <label for="red">Red</label><input type="radio" name="option" id="red" value="red" onclick="document.getElementById('colour').innerHTML = 'Red'" <?php if (isset($result)) { if ($result->colour == "red") { echo "checked"; } } ?>>
                     <label for="green">Green</label><input type="radio" name="option" id="green" value="green" onclick="document.getElementById('colour').innerHTML = 'Green'" <?php if (isset($result)) { if ($result->colour == "green") { echo "checked"; } } ?>>
                 </div>
-                <?php
+            <?php
+            if ($access == true) {
+                echo "
+                <table>
+                    <tr>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Email</th>
+                        <th>Contributor</th>
+                    </tr>
+                ";
+                $possibleContributors = $mysqli->query("SELECT * FROM users WHERE userID != $userID");
+                while ($contributor = $possibleContributors->fetch_object()) {
+                    echo "
+                    <tr>
+                    <td>$contributor->firstname</td>
+                    <td>$contributor->surname</td>
+                    <td>$contributor->email</td>
+                    <td><input type='checkbox' name='contributors[]' value='$contributor->userID' ";
+                    if (isset($_GET['tasklistID'])) {
+                        $selectedCheck = $mysqli->query("SELECT * FROM tasklistaccess WHERE userID = $contributor->userID AND taskListID = $taskListID");
+                        if (mysqli_num_rows($selectedCheck) > 0) {
+                            echo "checked";
+                        }
+                    }
+                    echo "
+                    ></td>
+                    </tr>
+                    ";
+                }
+            }
+            echo "</table>";
                 if (!isset($_GET['tasklistID'])) {
                     echo "<button type='sumbit' class='create-new-tasklist-button' name='create'>Create Task List</button>";
                 } else {
                     echo "<button type='sumbit' class='update-tasklist-button' name='update'>Update Task List</button>";
                 }
-                ?>
+            ?>
             </form>
-            <form method="post" class="delete-tasklist">
-            <?php echo "<button type='sumbit' class='delete-tasklist-button' name='delete'>Delete Task List</button>"; ?>
-            </form>
+            <?php
+            if ($access == true) {
+                echo "
+                <form method='post' class='delete-tasklist'>
+                    <button type='sumbit' class='delete-tasklist-button' name='delete'>Delete Task List</button>
+                </form>
+                ";
+            }
+            ?>
         </div>
     </div>
 </body>
