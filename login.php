@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                         </div>
                         <div class="flex-column">
                             <button type="sumbit" class="login-submit">Login</button>
-                            <p class="signup-prompt"><a href="#">Don't have an account? Sign up!</a></p>
+                            <p class="signup-prompt"><a href="signup.php">Don't have an account? Sign up!</a></p>
                         </div>
                     </form>
                 </div>

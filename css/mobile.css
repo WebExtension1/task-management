@@ -9,7 +9,7 @@ a {
 .navigation a, .task-title a, .signup-prompt a {
     color: white;
 }
-header, footer {
+header, nav, footer {
     background-color: gray;
     display: flex;
     justify-content: center;
@@ -18,7 +18,7 @@ header, footer {
     margin-left: 7px;
     margin-right: 7px;
 }
-header {
+header, nav {
     width: auto;
     padding: 15px;
     gap: 500px;
@@ -232,4 +232,15 @@ button:hover {
 }
 .notifications, .complete-requests {
     padding-left: 50px;
+}
+tr:nth-child(even) {
+    background-color: rgb(80, 80, 80);
+}
+
+.admin-container {
+    display: flex;
+    justify-content: center;
+}
+th {
+    padding: 5px;
 }

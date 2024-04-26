@@ -70,9 +70,11 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                     }
                     else {
                         while ($obj = $resultTaskLists -> fetch_object()) {
-                            echo "<a href='tasklist-details.php?tasklistID=$obj->taskListID' class='edit-tasklist'>Edit</a>";
-                            echo "<p class='task-list-title' style='border-color: $obj->colour'>{$obj->name}</p>";
-                            echo "<div class='task-list-tasks' style='border-color: $obj->colour'>";
+                            echo "
+                            <a href='tasklist-details.php?tasklistID=$obj->taskListID' class='edit-tasklist'>Edit</a>
+                            <p class='task-list-title' style='border-color: $obj->colour'>{$obj->name}</p>
+                            <div class='task-list-tasks' style='border-color: $obj->colour'>
+                            ";
                             $queryTasks = "SELECT * FROM tasks, taskListtasks WHERE tasklisttasks.taskListID = $obj->taskListID AND tasks.taskID = tasklisttasks.taskID";
                             $resultTasks = $mysqli->query( $queryTasks );
                             while ($obj2 = $resultTasks -> fetch_object()) {
@@ -111,18 +113,22 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                                 echo "<div class='comment-box'>";
                                 $poster = $mysqli -> query("SELECT firstname, surname FROM users WHERE userID = $obj2->userID");
                                 $obj3 = $poster -> fetch_object();
-                                echo "<p class='poster'>$obj3->firstname $obj3->surname</p>";
-                                echo "<p class='comment'>$obj2->text</p>";
-                                echo "<p class='timestamp'>$obj2->timestamp</p>";
-                                echo "</div>";
+                                echo "
+                                <p class='poster'>$obj3->firstname $obj3->surname</p>
+                                <p class='comment'>$obj2->text</p>
+                                <p class='timestamp'>$obj2->timestamp</p>
+                                </div>
+                                ";
                             }
-                            echo "<div class='new-comment-box'>";
-                            echo "<form class='comment-form' method='post'>";
-                            echo "<p class='poster'>Commenting As $userDetails->firstname $userDetails->surname</p>";
-                            echo "<input name='comment-text' class='new-comment' required>";
-                            echo "<button type='add-comment' class='add-comment' name='new-comment'>Post Comment</button>";
-                            echo "</form>";
-                            echo "</div>";
+                            echo "
+                            <div class='new-comment-box'>
+                            <form class='comment-form' method='post'>
+                            <p class='poster'>Commenting As $userDetails->firstname $userDetails->surname</p>
+                            <input name='comment-text' class='new-comment' required>
+                            <button type='add-comment' class='add-comment' name='new-comment'>Post Comment</button>
+                            </form>
+                            </div>
+                            ";
                             $query = $mysqli->query("SELECT * FROM notification WHERE associatedTask = $taskID");
                             if (mysqli_num_rows($query) > 0) {
                                 echo "
