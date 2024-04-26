@@ -29,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         $query->execute();
     } else if (isset($_POST['delete'])) {
         include("includes/delete-tasklist.php");
+        header("Location: index.php");
     } else if (isset($_POST['update'])){
         $query = $mysqli->prepare("UPDATE tasklistaccess SET colour = ? WHERE tasklistID = ? AND userID = $userID");
         $query->bind_param('ss', $_POST['option'], $_GET['tasklistID']);
@@ -106,43 +107,46 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                 </div>
             <?php
             if ($access == true) {
-                echo "
-                <table>
-                    <tr>
-                        <th>First Name</th>
-                        <th>Last Name</th>
-                        <th>Email</th>
-                        <th>Contributor</th>
-                        <th>Owner</th>
-                    </tr>
-                ";
-                $possibleContributors = $mysqli->query("SELECT * FROM users WHERE userID != $userID");
-                while ($contributor = $possibleContributors->fetch_object()) {
+                $possibleContributors = $mysqli->query("SELECT * FROM users WHERE userID != $userID AND email != ''");
+                if (mysqli_num_rows($possibleContributors) > 0) {
                     echo "
-                    <tr>
-                    <td>$contributor->firstname</td>
-                    <td>$contributor->surname</td>
-                    <td>$contributor->email</td>
-                    <td><input type='checkbox' name='contributors[]' value='$contributor->userID' ";
-                    if (isset($_GET['tasklistID'])) {
-                        $selectedCheck = $mysqli->query("SELECT * FROM tasklistaccess WHERE userID = $contributor->userID AND taskListID = $taskListID AND owner = 0");
-                        if (mysqli_num_rows($selectedCheck) > 0) {
-                            echo "checked";
-                        }
-                    }
-                    echo "
-                    ></td>
-                    <td><input type='checkbox' name='owners[]' value='$contributor->userID' ";
-                    if (isset($_GET['tasklistID'])) {
-                        $selectedCheck = $mysqli->query("SELECT * FROM tasklistaccess WHERE userID = $contributor->userID AND taskListID = $taskListID AND owner = 1");
-                        if (mysqli_num_rows($selectedCheck) > 0) {
-                            echo "checked";
-                        }
-                    }
-                    echo "
-                    ></td>
-                    </tr>
+                    <table>
+                        <tr>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Email</th>
+                            <th>Contributor</th>
+                            <th>Owner</th>
+                        </tr>
                     ";
+                    
+                    while ($contributor = $possibleContributors->fetch_object()) {
+                        echo "
+                        <tr>
+                        <td>$contributor->firstname</td>
+                        <td>$contributor->surname</td>
+                        <td>$contributor->email</td>
+                        <td><input type='checkbox' name='contributors[]' value='$contributor->userID' ";
+                        if (isset($_GET['tasklistID'])) {
+                            $selectedCheck = $mysqli->query("SELECT * FROM tasklistaccess WHERE userID = $contributor->userID AND taskListID = $taskListID AND owner = 0");
+                            if (mysqli_num_rows($selectedCheck) > 0) {
+                                echo "checked";
+                            }
+                        }
+                        echo "
+                        ></td>
+                        <td><input type='checkbox' name='owners[]' value='$contributor->userID' ";
+                        if (isset($_GET['tasklistID'])) {
+                            $selectedCheck = $mysqli->query("SELECT * FROM tasklistaccess WHERE userID = $contributor->userID AND taskListID = $taskListID AND owner = 1");
+                            if (mysqli_num_rows($selectedCheck) > 0) {
+                                echo "checked";
+                            }
+                        }
+                        echo "
+                        ></td>
+                        </tr>
+                        ";
+                    }
                 }
             }
             echo "</table>";

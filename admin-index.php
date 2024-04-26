@@ -1,6 +1,7 @@
 <?php
 require_once("includes/config.php");
 session_start();
+$errors = array();
 
 $userID = 0;
 $loginException = "continue";
@@ -33,6 +34,38 @@ if (isset($_GET['delete'])) {
     $mysqli->query("DELETE FROM tasklistaccess WHERE userID = $deleteID");
     $mysqli->query("UPDATE users SET email = '' WHERE userID = $deleteID");
 }
+if (isset($_POST['fname'])) {
+    $firstname = $_POST['fname'];
+    $surname = $_POST['lname'];
+    $email = $_POST['email'];
+    $password = $_POST['password'];
+    $passworcCheck = $_POST['confirm-password'];
+    $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
+    if ($password != $passworcCheck) {
+        array_push($errors, "Passwords don't match");
+    }
+
+    $existsQuery = $mysqli->prepare("SELECT * FROM users WHERE email = ?");
+    $existsQuery->bind_param("s", $email);
+    $existsQuery->execute();
+    $existsResult = $existsQuery->get_result();
+    if (mysqli_num_rows($existsResult) != 0) {
+        array_push($errors, "Email is taken");
+    }
+
+    if (strlen($password) < 8 || strlen($passworcCheck) < 8) {
+        array_push($errors, "The password needs to be at least 8 characters");
+    }
+
+    if (count($errors) == 0) {
+        $query = $mysqli->prepare("INSERT INTO users (firstname, surname, email, psword, admin) VALUES (?, ?, ?, ?, 1)");
+        $query->bind_param('ssss', $firstname, $surname, $email, $passwordHash);
+        $query->execute();
+    
+        header("Location: admin-index.php");
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -47,6 +80,39 @@ if (isset($_GET['delete'])) {
 <body>
     <?php include("includes/header.php") ?>
     <div class="admin-container">
+        <div class='create-admin-account'>
+            <h1>New Admin Account</h1>
+            <form class="login-form" method="post">
+                <div class="flex-row">
+                    <div class="flex-column">
+                        <label for="fname">First name</label>
+                        <label for="lname">Surname</label>
+                        <label for="email">Email</label>
+                        <label for="password">Password</label>
+                        <label for="confirm-password">Confirm Password</label>
+                    </div>
+                    <div class="flex-column">
+                        <input type="text" name="fname" class="admin-detail" required>
+                        <input type="text" name="lname" class="admin-detail" required>
+                        <input type="email" name="email" class="admin-detail" required>
+                        <input type="password" name="password" class="admin-detail" required>
+                        <input type="password" name="confirm-password" class="admin-detail" required>
+                    </div>
+                </div>
+                <div class="flex-column">
+                    <button type="sumbit" class="signup-submit">Sign Up</button>
+                </div>
+                <?php
+                if (count($errors) > 0) {
+                    echo "<div class='errors'>";
+                    foreach ($errors as $error) {
+                        echo "<p class='error-message' style='text-align: center;'>$error</p>";
+                    }
+                    echo "</div>";
+                }
+                ?>
+            </form>
+        </div>
         <table>
             <tr>
                 <th>Firstname</th>

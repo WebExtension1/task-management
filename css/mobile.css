@@ -70,7 +70,6 @@ header, nav {
 }
 .login-form, .signup-form {
     display: flex;
-    gap: 150px;
     flex-direction: column;
 }
 .login-container, .signup-container, .info-container {
@@ -90,7 +89,7 @@ header, nav {
     margin-bottom: 10px;
 }
 .flex-column label {
-    margin-right: 10px;
+    margin: 6px 10px;
 }
 .signup-prompt {
     text-align: center;
@@ -236,11 +235,15 @@ button:hover {
 tr:nth-child(even) {
     background-color: rgb(80, 80, 80);
 }
-
 .admin-container {
     display: flex;
     justify-content: center;
+    flex-direction: column;
+    padding: 0px 700px;
 }
 th {
     padding: 5px;
+}
+.admin-detail {
+    width: 331px;
 }

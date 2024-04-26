@@ -1,6 +1,7 @@
 <?php
 require_once("includes/config.php");
 session_start();
+$errors = array();
 
 $userID = 0;
 if ($_SERVER['REQUEST_METHOD'] == "POST") {
@@ -11,7 +12,23 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
     $passworcCheck = $_POST['confirm-password'];
     $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
-    if ($password == $passworcCheck) {
+    if ($password != $passworcCheck) {
+        array_push($errors, "Passwords don't match");
+    }
+
+    $existsQuery = $mysqli->prepare("SELECT * FROM users WHERE email = ?");
+    $existsQuery->bind_param("s", $email);
+    $existsQuery->execute();
+    $existsResult = $existsQuery->get_result();
+    if (mysqli_num_rows($existsResult) != 0) {
+        array_push($errors, "Email is taken");
+    }
+
+    if (strlen($password) < 8 || strlen($passworcCheck) < 8) {
+        array_push($errors, "The password needs to be at least 8 characters");
+    }
+
+    if (count($errors) == 0) {
         $query = $mysqli->prepare("INSERT INTO users (firstname, surname, email, psword) VALUES (?, ?, ?, ?)");
         $query->bind_param('ssss', $firstname, $surname, $email, $passwordHash);
         $query->execute();
@@ -57,6 +74,15 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                         <div class="flex-column">
                             <button type="sumbit" class="signup-submit">Sign Up</button>
                         </div>
+                        <?php
+                        if (count($errors) > 0) {
+                            echo "<div class='errors'>";
+                            foreach ($errors as $error) {
+                                echo "<p class='error-message' style='text-align: center;'>$error</p>";
+                            }
+                            echo "</div>";
+                        }
+                        ?>
                     </form>
                 </div>
             </div>

@@ -1,5 +1,5 @@
 CREATE TABLE `users` (
-  `userID` int(11) NOT NULL AUTO_INCREMENT,
+  `userID` int NOT NULL AUTO_INCREMENT,
   `firstname` text NOT NULL,
   `surname` text NOT NULL,
   `email` text NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE `users` (
 );
 
 CREATE TABLE `tasks` (
-  `taskID` int(11) NOT NULL AUTO_INCREMENT,
+  `taskID` int NOT NULL AUTO_INCREMENT,
   `name` text NOT NULL,
   `description` text NOT NULL,
   `status` text NOT NULL,
@@ -17,26 +17,25 @@ CREATE TABLE `tasks` (
 );
 
 CREATE TABLE `tasklists` (
-  `taskListID` int(11) NOT NULL AUTO_INCREMENT,
+  `taskListID` int NOT NULL AUTO_INCREMENT,
   `name` text NOT NULL,
-  `owner` tinyint NOT NULL,
   PRIMARY KEY (taskListID)
 );
 
 CREATE TABLE `taskcomment` (
-  `commentID` int(11) NOT NULL AUTO_INCREMENT,
+  `commentID` int NOT NULL AUTO_INCREMENT,
   `text` text NOT NULL,
   `timestamp` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `taskID` int(11) NOT NULL,
-  `userID` int(11) NOT NULL,
+  `taskID` int NOT NULL,
+  `userID` int NOT NULL,
   PRIMARY KEY (commentID),
   FOREIGN KEY (taskID) REFERENCES tasks (taskID),
   FOREIGN KEY (userID) REFERENCES users (userID)
 );
 
 CREATE TABLE `notification` (
-  `notificationID` int(11) NOT NULL AUTO_INCREMENT,
-  `associatedTask` int(11) NOT NULL,
+  `notificationID` int NOT NULL AUTO_INCREMENT,
+  `associatedTask` int NOT NULL,
   `description` text NOT NULL,
   `timestamp` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (notificationID),
@@ -44,8 +43,8 @@ CREATE TABLE `notification` (
 );
 
 CREATE TABLE `tasklistaccess` (
-  `userID` int(11) NOT NULL AUTO_INCREMENT,
-  `taskListID` int(11) NOT NULL,
+  `userID` int NOT NULL,
+  `taskListID` int NOT NULL,
   `colour` text NOT NULL,
   `owner` tinyint(1) NOT NULL,
   FOREIGN KEY (userID) REFERENCES users (userID),
@@ -54,15 +53,15 @@ CREATE TABLE `tasklistaccess` (
 
 CREATE TABLE `taskcompleted` (
   `timestamp` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `taskID` int(11) NOT NULL,
-  `userID` int(11) NOT NULL,
+  `taskID` int NOT NULL,
+  `userID` int NOT NULL,
   FOREIGN KEY (taskID) REFERENCES tasks (taskID),
   FOREIGN KEY (userID) REFERENCES users (userID)
 );
 
 CREATE TABLE `tasklisttasks` (
-  `taskListID` int(11) NOT NULL,
-  `taskID` int(11) NOT NULL,
+  `taskListID` int NOT NULL,
+  `taskID` int NOT NULL,
   FOREIGN KEY (taskListID) REFERENCES taskLists (taskListID),
   FOREIGN KEY (taskID) REFERENCES tasks (taskID)
 );
