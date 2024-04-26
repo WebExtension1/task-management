@@ -18,6 +18,7 @@ CREATE TABLE `tasks` (
 CREATE TABLE `tasklists` (
   `taskListID` int(11) NOT NULL AUTO_INCREMENT,
   `name` text NOT NULL,
+  `owner` tinyint NOT NULL,
     PRIMARY KEY (taskListID)
 );
 

@@ -7,7 +7,7 @@ $userID = $_SESSION['user_id'];
 $access = true;
 if (isset($_GET['tasklistID'])) {
     $taskListID = $_GET['tasklistID'];
-    $query = $mysqli->query("SELECT * FROM tasklistaccess, tasklists WHERE tasklistaccess.taskListID = tasklists.taskListID AND tasklistaccess.taskListID = $taskListID AND userID = $userID AND owner = 1");
+    $query = $mysqli->query("SELECT * FROM tasklistaccess, tasklists WHERE tasklistaccess.taskListID = tasklists.taskListID AND tasklistaccess.taskListID = $taskListID AND userID = $userID AND tasklistaccess.owner = 1");
     $result = $query->fetch_object();
     if (mysqli_num_rows($query) == 0) {
         $access = false;
@@ -35,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             $mysqli->query("DELETE FROM notification WHERE associatedTask = $taskToRemove->taskID");
             $mysqli->query("DELETE FROM taskcomment WHERE taskID = $taskToRemove->taskID");
             $mysqli->query("DELETE FROM tasks WHERE tasks.taskID = $taskToRemove->taskID");
+            $mysqli->query("DELETE FROM taskcompleted WHERE taskID = $taskToRemove->taskID");
         }
         
         $mysqli->query("DELETE FROM tasklists WHERE taskListID = $taskListID");
@@ -43,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         $query->bind_param('ss', $_POST['option'], $_GET['tasklistID']);
         $query->execute();
 
-        if ($result->owner == 1) {
+        if ($access == true) {
             $query = $mysqli->prepare("UPDATE tasklists SET name = ? WHERE tasklistID = ?");
             $query->bind_param('ss', $_POST['taskListName'], $_GET['tasklistID']);
             $query->execute();
@@ -52,15 +53,35 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         }
     }
     if (isset($_POST['update']) || isset($_POST['create'])) {
+        $usedIDs = array();
+        $mysqli->query("DELETE FROM tasklistaccess WHERE tasklistID = $taskListID AND userID != $userID");
+        if (isset($_POST['owners'])) {
+            $closeStatementCheck = 1;
+            $queryText = "INSERT INTO tasklistaccess (userID, taskListID, colour, owner) VALUES ";
+            foreach ($_POST['owners'] as $owner) {
+                $queryText .= "($owner, $taskListID, 'white', 1)";
+                $queryText .= ($closeStatementCheck == count($_POST['owners']) ? ";" : ", ");
+                $closeStatementCheck++;
+                array_push($usedIDs, $owner);
+            }
+            $mysqli->query($queryText);
+        }
+        $valid = false;
         if (isset($_POST['contributors'])) {
             $closeStatementCheck = 1;
             $queryText = "INSERT INTO tasklistaccess (userID, taskListID, colour, owner) VALUES ";
             foreach ($_POST['contributors'] as $contributor) {
-                $queryText .= "($contributor, $taskListID, 'white', 0)";
-                $queryText .= ($closeStatementCheck == count($_POST['contributors']) ? ";" : ",");
-                $closeStatementCheck++;
+                if (!in_array($contributor, $usedIDs)) {
+                    $queryText .= "($contributor, $taskListID, 'white', 0)";
+                    $queryText .= ($closeStatementCheck == count($_POST['contributors']) ? ";" : ", ");
+                    $closeStatementCheck++;
+                    $valid = true;
+                }
             }
-            $query = $mysqli->query($queryText);
+            echo $queryText;
+            if ($valid == true) {
+                $mysqli->query($queryText);
+            }
         }
     }
     header("Location: index.php?task_id=$taskID");
@@ -102,6 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                         <th>Last Name</th>
                         <th>Email</th>
                         <th>Contributor</th>
+                        <th>Owner</th>
                     </tr>
                 ";
                 $possibleContributors = $mysqli->query("SELECT * FROM users WHERE userID != $userID");
@@ -113,7 +135,16 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                     <td>$contributor->email</td>
                     <td><input type='checkbox' name='contributors[]' value='$contributor->userID' ";
                     if (isset($_GET['tasklistID'])) {
-                        $selectedCheck = $mysqli->query("SELECT * FROM tasklistaccess WHERE userID = $contributor->userID AND taskListID = $taskListID");
+                        $selectedCheck = $mysqli->query("SELECT * FROM tasklistaccess WHERE userID = $contributor->userID AND taskListID = $taskListID AND owner = 0");
+                        if (mysqli_num_rows($selectedCheck) > 0) {
+                            echo "checked";
+                        }
+                    }
+                    echo "
+                    ></td>
+                    <td><input type='checkbox' name='owners[]' value='$contributor->userID' ";
+                    if (isset($_GET['tasklistID'])) {
+                        $selectedCheck = $mysqli->query("SELECT * FROM tasklistaccess WHERE userID = $contributor->userID AND taskListID = $taskListID AND owner = 1");
                         if (mysqli_num_rows($selectedCheck) > 0) {
                             echo "checked";
                         }
@@ -133,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             ?>
             </form>
             <?php
-            if ($access == true) {
+            if ($access == true && isset($_GET['tasklistID'])) {
                 echo "
                 <form method='post' class='delete-tasklist'>
                     <button type='sumbit' class='delete-tasklist-button' name='delete'>Delete Task List</button>

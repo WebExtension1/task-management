@@ -11,7 +11,7 @@ try {
     $userDetails = $userDetailsQuery -> fetch_object();
 }
 catch (Exception $loginException) {
-    echo '<script>console.log("User not signed in.");</script>';
+    header("Location: login.php");
 }
 $taskException = "continue";
 try {
@@ -32,14 +32,19 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         $query->bind_param('sss', $_POST['comment-text'], $taskID, $userID);
         $query->execute();
     } else if (isset($_POST['complete'])) {
-        $query = $mysqli->prepare("UPDATE tasks SET status = 'closed' WHERE taskID = ?");
-        $query->bind_param('i', $taskID);
-        $query->execute();
-
-        $notificationMessage = "$user->firstname $user->surname marked the task as complete";
-        $query = $mysqli->prepare("INSERT INTO notification (associatedTask, description) VALUES (?, ?)");
-        $query->bind_param('is', $taskID , $notificationMessage);
-        $query->execute();
+        $ownerQuery = $mysqli->query("SELECT tasklistaccess.owner FROM tasks, tasklisttasks, tasklistaccess WHERE tasks.taskID = $taskID AND tasks.taskID = tasklisttasks.taskID AND tasklisttasks.tasklistID = tasklistaccess.tasklistID AND tasklistaccess.userID = $userID AND tasklistaccess.owner = 1");
+        if (mysqli_num_rows($ownerQuery) > 0) {
+            $query = $mysqli->prepare("UPDATE tasks SET status = 'closed' WHERE taskID = ?");
+            $query->bind_param('i', $taskID);
+            $query->execute();
+    
+            $notificationMessage = "$user->firstname $user->surname marked the task as complete";
+            $query = $mysqli->prepare("INSERT INTO notification (associatedTask, description) VALUES (?, ?)");
+            $query->bind_param('is', $taskID , $notificationMessage);
+            $query->execute();
+        } else {
+            $mysqli->query("INSERT INTO taskcompleted (taskID, userID) VALUES ($taskID, $userID)");
+        }
     }
     header("Location: index.php?task_id=$taskID");
 }
@@ -94,7 +99,10 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                             }
 
                             if ($obj->status == "open") {
-                                echo "<form method='post'><button name='complete' class='complete'>Mark as complete</button></form>";
+                                $markedAsComplete = $mysqli->query("SELECT * FROM taskcompleted WHERE userID = $userID AND taskID = $taskID");
+                                if (mysqli_num_rows($markedAsComplete) == 0) {
+                                    echo "<form method='post'><button name='complete' class='complete'>Mark as complete</button></form>";
+                                }
                             }                           
 
                             echo "<h1 class=\"task-name\" style=' " . ($obj->status == "closed" ? "color:greenyellow; border-bottom: 3px solid greenyellow;" : "border-bottom: 3px solid #fff;") . "'>$obj->name</h1>";
@@ -123,6 +131,20 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                                 ";
                                 while ($notification = $query->fetch_object()) {
                                     echo "<p>$notification->timestamp: $notification->description</p>";
+                                }
+                                echo "
+                                </div>
+                                ";
+                            }
+                            $query = $mysqli->query("SELECT * FROM taskcompleted WHERE taskID = $taskID");
+                            if (mysqli_num_rows($query) > 0) {
+                                echo "
+                                <div class='complete-requests'>
+                                <h1>Completion requests</h1>
+                                ";
+                                while ($request = $query->fetch_object()) {
+                                    $requestedUser = $mysqli->query("SELECT * FROM users WHERE userID = $request->userID")->fetch_object();
+                                    echo "<p>$request->timestamp: Submitted by $requestedUser->firstname $requestedUser->surname</p>";
                                 }
                                 echo "
                                 </div>

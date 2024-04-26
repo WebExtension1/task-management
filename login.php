@@ -7,15 +7,17 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
     $email = $_POST['email'];
     $password = $_POST['password'];
     
-    $query = $mysqli->prepare('SELECT * FROM users WHERE email = ? AND psword = ?'); 
-    $query->bind_param('ss', $email, $password); 
+    $query = $mysqli->prepare('SELECT * FROM users WHERE email = ?'); 
+    $query->bind_param('s', $email); 
     $query->execute();
-    $result = $query->get_result();
+    $results = $query->get_result();
 
-    if (mysqli_num_rows($result) > 0){ 
-        $obj = $result -> fetch_object();
-        $_SESSION['user_id'] = $obj->userID;
-        header("Location: index.php");
+    if ($results->num_rows > 0){ 
+        $result = $results->fetch_object();
+        if (password_verify($password, $result->psword)) {
+            $_SESSION['user_id'] = $result->userID;
+            header("Location: index.php");
+        }
     }
 }
 ?>

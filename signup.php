@@ -8,12 +8,16 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
     $surname = $_POST['lname'];
     $email = $_POST['email'];
     $password = $_POST['password'];
+    $passworcCheck = $_POST['confirm-password'];
+    $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
-    $query = $mysqli->prepare("INSERT INTO users (firstname, surname, email, psword) VALUES (?, ?, ?, ?)");
-    $query->bind_param('ssss', $firstname, $surname, $email, $password);
-    $query->execute();
-
-    header("Location: index.php");
+    if ($password == $passworcCheck) {
+        $query = $mysqli->prepare("INSERT INTO users (firstname, surname, email, psword) VALUES (?, ?, ?, ?)");
+        $query->bind_param('ssss', $firstname, $surname, $email, $passwordHash);
+        $query->execute();
+    
+        header("Location: index.php");
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -36,16 +40,18 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                     <form class="login-form" method="post">
                         <div class="flex-row">
                             <div class="flex-column">
-                                <label>First name</label>
-                                <label>Surname</label>
-                                <label>Email</label>
-                                <label>Password</label>
+                                <label for="fname">First name</label>
+                                <label for="lname">Surname</label>
+                                <label for="email">Email</label>
+                                <label for="password">Password</label>
+                                <label for="confirm-password">Confirm Password</label>
                             </div>
                             <div class="flex-column">
                                 <input type="text" name="fname" required>
                                 <input type="text" name="lname" required>
-                                <input name="email" required>
+                                <input type="email" name="email" required>
                                 <input type="password" name="password" required>
+                                <input type="password" name="confirm-password" required>
                             </div>
                         </div>
                         <div class="flex-column">

@@ -230,6 +230,6 @@ button:hover {
     padding: 5px;
     margin: 15px 15px 0px calc(100% - 150px);
 }
-.notifications {
+.notifications, .complete-requests {
     padding-left: 50px;
 }
