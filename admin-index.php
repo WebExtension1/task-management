@@ -32,7 +32,7 @@ if (isset($_GET['delete'])) {
     }
     $deleteID = $_GET['delete'];
     $mysqli->query("DELETE FROM tasklistaccess WHERE userID = $deleteID");
-    $mysqli->query("UPDATE users SET email = '' WHERE userID = $deleteID");
+    $mysqli->query("UPDATE users SET email = '', psword = '' WHERE userID = $deleteID");
 }
 if (isset($_POST['fname'])) {
     $firstname = $_POST['fname'];
