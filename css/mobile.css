@@ -194,7 +194,7 @@ input {
     width: 10px;
     align-content: start;
     margin-top: 100px;
-    margin-left: 60px;
+    margin-left: 260px;
     gap: 10px;
 }
 .colour {
@@ -246,4 +246,10 @@ th {
 }
 .admin-detail {
     width: 331px;
+}
+.tasklist-details {
+    width: 800px;
+}
+.delete-tasklist {
+    padding: 15px 0px 0px 345px;
 }

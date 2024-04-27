@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
 <body>
     <?php include("includes/header.php") ?>
     <div class="info-container">
-        <div class="info-box">
+        <div class="info-box tasklist-details">
             <form method="post" class="new-tasklist-form">
                 <?php
                 if ($access == true) {
