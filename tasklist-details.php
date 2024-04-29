@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             $query = $mysqli->query("DELETE FROM tasklistaccess WHERE tasklistID = $taskListID AND owner != 1");
         }
     }
-    if (isset($_POST['update']) || isset($_POST['create'])) {
+    if ((isset($_POST['update']) || isset($_POST['create'])) && $access == true) {
         $usedIDs = array();
         $mysqli->query("DELETE FROM tasklistaccess WHERE tasklistID = $taskListID AND userID != $userID");
         if (isset($_POST['owners'])) {
